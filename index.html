@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f6f1e6">
+<title>你最像哪件国宝 · 人格测评</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- 品牌头 -->
+  <div class="brand">
+    <div class="brand-mark">国宝图鉴</div>
+    <h1>你最像哪件国宝</h1>
+    <p>24 道题 · 六维气格 · 十二件国之重器</p>
+  </div>
+
+  <!-- 1. 密码页 -->
+  <section id="gate" class="card">
+    <input class="pwd-input" id="pwd" type="text" placeholder="请输入测评密码" autocomplete="off">
+    <button class="btn btn-primary" id="btn-start">开 始 测 评</button>
+    <p class="err" id="err"></p>
+    <p class="pwd-tip">
+      每个密码可测评 3 次。<br>
+      测评约需 3 分钟，请按第一感觉作答。
+    </p>
+  </section>
+
+  <!-- 2. 答题页 -->
+  <section id="quiz" class="card hidden">
+    <div class="progress-row">
+      <div class="progress"><i id="bar"></i></div>
+      <div class="progress-num" id="num">1/24</div>
+    </div>
+    <div class="q-index" id="q-index">第 1 题 / 共 24 题</div>
+    <p class="q-text" id="q-text"></p>
+    <div class="scale" id="options"></div>
+    <div class="scale-ends"><span>完全不像我</span><span>完全是我</span></div>
+    <div class="nav-row">
+      <button class="btn btn-ghost" id="btn-prev">上一题</button>
+      <button class="btn btn-primary" id="btn-next">下一题</button>
+    </div>
+  </section>
+
+  <!-- 3. 结果页 -->
+  <section id="result" class="card hidden">
+    <div class="result-hero">
+      <div class="label">你最像的国宝是</div>
+      <h2 id="r-name"></h2>
+      <div class="tag" id="r-tag"></div>
+      <div class="quote" id="r-quote"></div>
+    </div>
+
+    <div class="radar-box"><canvas id="radar"></canvas></div>
+
+    <div class="match-row">
+      <div><div class="v" id="r-pct"></div><div class="k">匹配度</div></div>
+      <div><div class="v" id="r-rarity"></div><div class="k">同款占比</div></div>
+    </div>
+
+    <div class="sec">
+      <h3>你的三个特质</h3>
+      <div class="traits" id="r-traits"></div>
+    </div>
+
+    <div class="sec">
+      <h3>一个提醒</h3>
+      <div class="shadow-box" id="r-shadow"></div>
+    </div>
+
+    <div class="sec">
+      <h3>六维解析</h3>
+      <div id="r-dims"></div>
+    </div>
+
+    <div class="sec">
+      <h3>这件国宝</h3>
+      <p class="story" id="r-story"></p>
+    </div>
+
+    <div class="sec">
+      <h3>给你的建议</h3>
+      <div class="advice" id="r-advice"></div>
+    </div>
+
+    <div class="sec">
+      <h3>关系</h3>
+      <div class="also">
+        <div><div class="k">另一面</div><div id="r-second"></div></div>
+        <div><div class="k">最不像</div><div id="r-far"></div></div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <div class="row2">
+        <button class="btn btn-primary" id="btn-save">保存长图</button>
+        <button class="btn btn-ghost" id="btn-copy">复制结果链接</button>
+      </div>
+      <div class="row2">
+        <button class="btn btn-ghost" id="btn-again">再测一次</button>
+        <button class="btn btn-gold" id="btn-gift">好评有礼</button>
+      </div>
+    </div>
+
+    <p class="disclaimer">
+      本测评为文化趣味型自我探索参考，不构成心理评估或医学诊断。<br>
+      文物典故为常识性表述，仅供参考。
+    </p>
+  </section>
+
+</div>
+
+<!-- 长图渲染容器（屏幕外） -->
+<div id="shot"></div>
+
+<div class="toast" id="toast"></div>
+
+<script src="vendor/supabase.min.js"></script>
+<script src="assets/config.js"></script>
+<script src="vendor/html2canvas.min.js"></script>
+<script src="assets/data.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
