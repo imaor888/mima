@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>数据统计 · 你最像哪件国宝</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  body { background: var(--paper); }
+  .row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .kpi { flex: 1; min-width: 96px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px 14px; text-align: center; }
+  .kpi .v { font-size: 26px; color: var(--red); }
+  .kpi .k { font-size: 11px; color: var(--ink-3); letter-spacing: .1em; margin-top: 4px; font-family: var(--sans); }
+  table { width: 100%; border-collapse: collapse; font-family: var(--sans); font-size: 13px; }
+  th, td { text-align: left; padding: 9px 8px; border-bottom: 1px solid var(--line); }
+  th { color: var(--ink-3); font-weight: 400; font-size: 11px; letter-spacing: .1em; }
+  .bar { height: 6px; background: var(--red); border-radius: 999px; }
+  .bar-bg { height: 6px; background: var(--paper-2); border-radius: 999px; margin-top: 5px; }
+  input.mini { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; font-size: 14px; font-family: var(--sans); width: 100%; background: #fffefb; color: var(--ink); outline: none; }
+  .grid2 { display: flex; gap: 10px; }
+  .grid2 > div { flex: 1; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="brand">
+    <div class="brand-mark">后台</div>
+    <h1>数据统计</h1>
+    <p>测评次数 · 结果分布 · 测评码余量</p>
+  </div>
+
+  <section class="card" id="login">
+    <input class="mini" id="api" placeholder="后端地址，如 https://api.xxx.com" style="margin-bottom:10px;">
+    <input class="mini" id="token" type="password" placeholder="管理口令 ADMIN_TOKEN" style="margin-bottom:14px;">
+    <button class="btn btn-primary" id="go">查 看 数 据</button>
+    <p class="pwd-tip" id="msg"></p>
+  </section>
+
+  <section id="panel" class="hidden">
+    <div class="card" style="margin-bottom:14px;">
+      <div class="row">
+        <div class="kpi"><div class="v" id="k-total">-</div><div class="k">总测评次数</div></div>
+        <div class="kpi"><div class="v" id="k-today">-</div><div class="k">今日</div></div>
+        <div class="kpi"><div class="v" id="k-week">-</div><div class="k">近 7 日</div></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:14px;">
+      <div class="sec"><h3>结果分布</h3><div id="dist"></div></div>
+    </div>
+
+    <div class="card" style="margin-bottom:14px;">
+      <div class="sec"><h3>测评码余量</h3>
+        <div style="overflow-x:auto;"><table id="codes"></table></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:14px;">
+      <div class="sec"><h3>最近记录</h3>
+        <div style="overflow-x:auto;"><table id="recent"></table></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sec"><h3>新增测评码</h3>
+        <div class="grid2" style="margin-bottom:10px;">
+          <div><input class="mini" id="nc" placeholder="新密码"></div>
+          <div><input class="mini" id="nu" type="number" value="3" placeholder="次数"></div>
+        </div>
+        <button class="btn btn-ghost" id="add">新增</button>
+        <p class="pwd-tip" id="addmsg"></p>
+      </div>
+    </div>
+
+    <p class="disclaimer">数据来自后端数据库，与前端本地缓存无关。</p>
+  </section>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="assets/data.js"></script>
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const NAME = {};
+  window.GB_DATA.RESULTS.forEach(function (r) { NAME[r.id] = r.name; });
+
+  let API = "", TOKEN = "";
+
+  function toast(m) {
+    const t = $("toast");
+    t.textContent = m; t.classList.add("show");
+    setTimeout(function () { t.classList.remove("show"); }, 2200);
+  }
+
+  async function load() {
+    const res = await fetch(API + "/api/stats?token=" + encodeURIComponent(TOKEN));
+    if (!res.ok) throw new Error("口令错误或服务不可达");
+    const j = await res.json();
+    if (!j.ok) throw new Error("口令错误");
+    return j.data;
+  }
+
+  function render(d) {
+    $("k-total").textContent = d.total;
+    $("k-today").textContent = d.today;
+    $("k-week").textContent = d.week;
+
+    const max = Math.max.apply(null, d.byResult.map(function (x) { return x.n; }).concat([1]));
+    $("dist").innerHTML = d.byResult.length ? d.byResult.map(function (x) {
+      return '<div style="margin-bottom:12px;">' +
+        '<div style="display:flex;justify-content:space-between;font-family:-apple-system,sans-serif;font-size:13px;">' +
+        '<span>' + (NAME[x.id] || x.id) + '</span><span style="color:#8b8272;">' + x.n + ' 次 · ' + x.pct + '%</span></div>' +
+        '<div class="bar-bg"><div class="bar" style="width:' + (x.n / max * 100) + '%;"></div></div></div>';
+    }).join("") : '<p class="pwd-tip">暂无数据</p>';
+
+    $("codes").innerHTML = '<tr><th>测评码</th><th>可用/总量</th><th>剩余</th><th>备注</th></tr>' +
+      d.codes.map(function (c) {
+        return '<tr><td>' + c.code + '</td><td>' + c.usedCount + '/' + c.maxUses + '</td><td>' + c.left + '</td><td>' + (c.note || '') + '</td></tr>';
+      }).join("");
+
+    $("recent").innerHTML = '<tr><th>时间</th><th>测评码</th><th>结果</th></tr>' +
+      (d.recent.length ? d.recent.map(function (r) {
+        const t = String(r.created_at).replace("T", " ").slice(0, 19);
+        return '<tr><td>' + t + '</td><td>' + r.code + '</td><td>' + (NAME[r.result_id] || r.result_id) + '</td></tr>';
+      }).join("") : '<tr><td colspan="3">暂无记录</td></tr>');
+  }
+
+  $("go").addEventListener("click", async function () {
+    API = $("api").value.trim().replace(/\/$/, "");
+    TOKEN = $("token").value.trim();
+    $("msg").textContent = "";
+    if (!API || !TOKEN) { $("msg").textContent = "请填写后端地址与口令"; return; }
+    $("go").disabled = true; $("go").textContent = "读取中…";
+    try {
+      const d = await load();
+      render(d);
+      $("login").classList.add("hidden");
+      $("panel").classList.remove("hidden");
+    } catch (e) {
+      $("msg").textContent = e.message || "读取失败";
+    }
+    $("go").disabled = false; $("go").textContent = "查 看 数 据";
+  });
+
+  $("add").addEventListener("click", async function () {
+    const code = $("nc").value.trim();
+    const uses = parseInt($("nu").value, 10) || 3;
+    $("addmsg").textContent = "";
+    if (!code) { $("addmsg").textContent = "请填写新密码"; return; }
+    try {
+      const res = await fetch(API + "/api/admin/codes?token=" + encodeURIComponent(TOKEN), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: code, maxUses: uses, note: "后台新增" })
+      });
+      const j = await res.json();
+      if (!j.ok) throw new Error("新增失败");
+      toast("已新增：" + code);
+      $("nc").value = "";
+      render(await load());
+    } catch (e) {
+      $("addmsg").textContent = e.message || "新增失败";
+    }
+  });
+})();
+</script>
+</body>
+</html>
