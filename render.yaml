@@ -1,0 +1,33 @@
+# Render Blueprint —— 免费层 + PostgreSQL（推荐）
+#
+# 为什么默认用 Postgres：Render 免费层【不提供持久磁盘】，
+# 用 SQLite 的话每次重新部署或休眠唤醒，测评码与记录都会丢失。
+# 免费持久库最省事的选择是 Supabase / Neon 的免费 Postgres。
+#
+# 用法：Render 控制台 → New → Blueprint → 选本仓库
+#   rootDir 指向 server 子目录，dockerfilePath 相对该目录
+
+services:
+  - type: web
+    name: guobao-test-api
+    runtime: docker
+    rootDir: server
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: singapore
+    healthCheckPath: /api/health
+    envVars:
+      - key: DB_DRIVER
+        value: postgres
+      # 需手动填写：Supabase 控制台 → Project Settings → Database
+      #            → Connection string → URI（把 [YOUR-PASSWORD] 换成真密码）
+      - key: DATABASE_URL
+        sync: false
+      # 首次部署后 Render 会自动生成，也可自己填一个长随机串
+      - key: ADMIN_TOKEN
+        generateValue: true
+      # 建议部署出 Pages 域名后改成具体域名，如 https://xxx.github.io
+      - key: CORS_ORIGIN
+        value: "*"
+      - key: SEED_DEFAULT
+        value: "true"
