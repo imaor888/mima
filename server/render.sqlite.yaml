@@ -1,0 +1,31 @@
+# Render Blueprint —— SQLite 版（需付费层 Starter，$7/月起）
+#
+# 前提：Render 免费层不提供持久磁盘，SQLite 数据会在重新部署/休眠后丢失。
+# 用这个配置请把 plan 改成 starter（或更高），disk 才会生效。
+#
+# 用法：把本文件内容替换仓库根目录的 render.yaml 后再部署
+
+services:
+  - type: web
+    name: guobao-test-api
+    runtime: docker
+    rootDir: server
+    dockerfilePath: ./Dockerfile
+    plan: starter
+    region: singapore
+    healthCheckPath: /api/health
+    envVars:
+      - key: DB_DRIVER
+        value: sqlite
+      - key: DB_FILE
+        value: /app/data/guobao.db
+      - key: ADMIN_TOKEN
+        generateValue: true
+      - key: CORS_ORIGIN
+        value: "*"
+      - key: SEED_DEFAULT
+        value: "true"
+    disk:
+      name: guobao-data
+      mountPath: /app/data
+      sizeGB: 1
