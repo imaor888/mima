@@ -1,0 +1,18 @@
+{
+  "name": "guobao-test-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "《你最像哪件国宝》测评后端：真密码校验 + 原子次数扣减 + 数据统计",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node --experimental-sqlite src/index.js",
+    "start:pg": "node src/index.js",
+    "init:seed": "node --experimental-sqlite src/seed.js"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "optionalDependencies": {
+    "pg": "^8.12.0"
+  }
+}
